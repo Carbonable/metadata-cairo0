@@ -1,0 +1,14 @@
+[project]
+protostar-version = "0.10.0"
+lib-path = "lib"
+cairo-path = [
+    "src",
+    "lib/cairo_contracts/src",
+    "lib/cairo_erc_3525/src",
+]
+
+[contracts]
+ProjectMetadata = ["src/project/metadata.cairo"]
+
+[test]
+target = ["tests"]
