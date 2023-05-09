@@ -8,7 +8,8 @@ cairo-path = [
 ]
 
 [contracts]
-ProjectMetadata = ["src/project/metadata.cairo"]
+ProjectMetadata = ["src/project/contract/metadata.cairo"]
+PoC_SlotMetadata = ["src/project/slots/poc/metadata.cairo"]
 
 [test]
 target = ["tests"]
