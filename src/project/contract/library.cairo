@@ -43,7 +43,9 @@ namespace ContractMetadata {
         }
 
         // let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_tokenURI(
-        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.tokenURI(instance, token_id);
+        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_tokenURI(
+            class_hash, token_id
+        );
 
         return (uri_len=uri_len, uri=uri);
     }
@@ -69,7 +71,9 @@ namespace ContractMetadata {
             return (uri_len=0, uri=array);
         }
 
-        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.slotURI(instance, slot);
+        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_slotURI(
+            class_hash, slot
+        );
 
         return (uri_len=uri_len, uri=uri);
     }
