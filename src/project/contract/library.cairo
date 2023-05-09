@@ -9,64 +9,32 @@ from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.uint256 import Uint256, uint256_check
 from starkware.cairo.common.memcpy import memcpy
 
-from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
+from starkware.starknet.common.syscalls import get_contract_address
 
 // Project dependencies
-from openzeppelin.introspection.erc165.IERC165 import IERC165
-
 from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies
-from src.project.utils import ProjectSvg, felt31_to_short_string, array_concat
+from src.project.utils.svg import ProjectSvg, felt31_to_short_string, array_concat
+from src.project.interfaces.carbonable_metadata import ICarbonableMetadata
+from src.project.utils.assert_helper import Assert
 
-from erc3525.utils.constants.library import (
-    IERC165_ID,
-    IERC721_ID,
-    IERC721_METADATA_ID,
-    IERC721_ENUMERABLE_ID,
-    IERC3525_ID,
-    IERC3525_METADATA_ID,
-    IERC3525_RECEIVER_ID,
-    IERC3525_SLOT_APPROVABLE_ID,
-    ON_ERC3525_RECEIVED_SELECTOR,
-)
-
-@storage_var
-func CarbonableMetadata_implementation() -> (implementation: felt) {
-}
-
-@storage_var
-func CarbonableMetadata_slot_implementation(slot: Uint256) -> (implementation: felt) {
-}
-
-namespace CarbonableMetadataOnchainSvg {
-    //
-    // Getters
-    //
-
-    func get_implementation{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-        implementation: felt
-    ) {
-        return CarbonableMetadata_implementation.read();
-    }
-
-    func get_slot_implementation{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        slot: Uint256
-    ) -> (implementation: felt) {
-        Assert.u256(slot);
-        return CarbonableMetadata_implementation.read();
-    }
-
+namespace ContractMetadata {
     func token_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        tokenId: Uint256
+        token_id: Uint256
     ) -> (uri_len: felt, uri: felt*) {
         alloc_locals;
 
         // [Check] Uint256 compliance
         Assert.u256(token_id);
 
-        let (slot) = IERC3525.slotOf(instance, tokenId);
-        let (class_hash) = CarbonableMetadata.get_slot_implementation(slot);
+        let (instance) = get_contract_address();
+
+        // [Check] ERC3525 compliance
+        Assert.is_compatible(instance);
+
+        let (slot) = IERC3525.slotOf(instance, token_id);
+        let (class_hash) = ICarbonableMetadata.getSlotMetadataImplementation(instance, slot);
         let (local array: felt*) = alloc();
 
         // [Check] Metadata implementation set
@@ -74,9 +42,8 @@ namespace CarbonableMetadataOnchainSvg {
             return (uri_len=0, uri=array);
         }
 
-        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_tokenURI(
-            class_hash=class_hash, tokenId=token_id
-        );
+        // let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_tokenURI(
+        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.tokenURI(instance, token_id);
 
         return (uri_len=uri_len, uri=uri);
     }
@@ -89,7 +56,12 @@ namespace CarbonableMetadataOnchainSvg {
         // [Check] Uint256 compliance
         Assert.u256(slot);
 
-        let (class_hash) = CarbonableMetadata.get_slot_implementation(slot);
+        let (instance) = get_contract_address();
+
+        // [Check] ERC3525 compliance
+        Assert.is_compatible(instance);
+
+        let (class_hash) = ICarbonableMetadata.getSlotMetadataImplementation(instance, slot);
         let (local array: felt*) = alloc();
 
         // [Check] Metadata implementation set
@@ -97,9 +69,7 @@ namespace CarbonableMetadataOnchainSvg {
             return (uri_len=0, uri=array);
         }
 
-        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_slotURI(
-            class_hash=class_hash, slot=slot
-        );
+        let (uri_len: felt, uri: felt*) = ICarbonableMetadata.slotURI(instance, slot);
 
         return (uri_len=uri_len, uri=uri);
     }
@@ -109,40 +79,17 @@ namespace CarbonableMetadataOnchainSvg {
     ) {
         alloc_locals;
 
-        // TODO
+        let (instance) = get_contract_address();
 
+        // [Check] ERC3525 compliance
+        Assert.is_compatible(instance);
+
+        // TODO: Fix for non-PoC contracts
         let (res: felt*) = alloc();
         assert res[0] = 'https://dev-carbonable-metadata';
         assert res[1] = '.fly.dev/collection';
 
         return (2, res);
-    }
-
-    //
-    // Externals
-    //
-
-    func set_implementation{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        implementation: felt
-    ) {
-        with_attr error_message("Metadata: implementation hash cannot be zero") {
-            assert_not_zero(implementation);
-        }
-
-        CarbonableMetadata_implementation.write(implementation);
-        return ();
-    }
-
-    func set_slot_implementation{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        slot: Uint256, implementation: felt
-    ) {
-        Assert.u256(slot);
-        with_attr error_message("Metadata: implementation hash cannot be zero") {
-            assert_not_zero(implementation);
-        }
-
-        CarbonableMetadata_slot_implementation.write(slot, implementation);
-        return ();
     }
 
     //
@@ -187,7 +134,6 @@ namespace CarbonableMetadataOnchainSvg {
         let (res_len, res) = ProjectSvg._svg_breakline(res_len, res);
         let (res_len, res) = ProjectSvg._svg_defs(res_len, res);
         let (res_len, res) = ProjectSvg._svg_project_image(res_len, res);
-        let (res_len, res) = _add_svg_image_metadata(res_len, res, value);
         let (res_len, res) = ProjectSvg._svg_suffix(res_len, res);
 
         return (res_len, res);
@@ -205,15 +151,5 @@ namespace CarbonableMetadataOnchainSvg {
         assert res[res_len + 3] = '}]';
 
         return (res_len + 4, res);
-    }
-}
-
-// Assert helpers
-namespace Assert {
-    func u256{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(value: Uint256) {
-        with_attr error_message("Metadata: value is not a valid Uint256") {
-            uint256_check(value);
-        }
-        return ();
     }
 }
