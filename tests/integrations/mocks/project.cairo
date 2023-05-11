@@ -154,12 +154,19 @@ func valueOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to
 
 @view
 func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
-    return (name='name');
+    return (name='Carbonable Projects');
 }
 
 @view
 func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (symbol: felt) {
-    return (symbol='symbol');
+    return (symbol='CRP');
+}
+
+@view
+func slotCount{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    count: Uint256
+) {
+    return (count=Uint256(3, 0));
 }
 
 // Assert helpers
