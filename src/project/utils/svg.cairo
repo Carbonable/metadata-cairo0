@@ -9,13 +9,6 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.memcpy import memcpy
 
-func array_concat{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    res_len: felt, res: felt*, add_len: felt, add: felt*
-) -> (res_len: felt, res: felt*) {
-    memcpy(res + res_len, add, add_len);
-    return (res_len + add_len, res);
-}
-
 func felt31_to_short_string{range_check_ptr}(x: felt) -> felt {
     return _felt_to_ss_iter(x, 0, 1);
 }

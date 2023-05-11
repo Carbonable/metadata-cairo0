@@ -16,7 +16,7 @@ from openzeppelin.introspection.erc165.IERC165 import IERC165
 from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies
-from src.project.utils.svg import ProjectSvg, felt31_to_short_string, array_concat
+from src.project.utils.svg import ProjectSvg, felt31_to_short_string
 from src.project.utils.assert_helper import Assert
 
 namespace SlotMetadata {
