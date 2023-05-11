@@ -45,9 +45,16 @@ func test_metadata_nominal_case{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     // Get contract metadata
     let (uri_len, uri) = ICarbonableMetadata.contractURI(instance);
     %{
+        import json
         uri_data = [memory[ids.uri + i] for i in range(ids.uri_len)]
         data = "".join(map(lambda val: bytes.fromhex(hex(val)[2:]).decode(), uri_data))
-        assert data.startswith("https://")
+        metadata = json.loads(data[22:])
+        assert "name" in metadata
+        assert "description" in metadata
+        assert "image" in metadata
+        assert "external_url" in metadata
+        assert "banner_image_url" in metadata
+        assert "youtube_url" in metadata
     %}
 
     // Get slot metadata
