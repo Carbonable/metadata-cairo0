@@ -15,9 +15,10 @@ from starkware.starknet.common.syscalls import get_contract_address
 from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies
-from src.project.utils.svg import ProjectSvg, felt31_to_short_string, array_concat
+from src.project.contract.svg_utils import ContractSVG
 from src.project.interfaces.carbonable_metadata import ICarbonableMetadata
 from src.project.utils.assert_helper import Assert
+from src.project.utils.svg import felt31_to_short_string
 
 namespace ContractMetadata {
     func token_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -42,7 +43,6 @@ namespace ContractMetadata {
             return (uri_len=0, uri=array);
         }
 
-        // let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_tokenURI(
         let (uri_len: felt, uri: felt*) = ICarbonableMetadata.library_call_tokenURI(
             class_hash, token_id
         );
@@ -83,17 +83,35 @@ namespace ContractMetadata {
     ) {
         alloc_locals;
 
-        let (instance) = get_contract_address();
-
+        let (local instance) = get_contract_address();
         // [Check] ERC3525 compliance
         Assert.is_compatible(instance);
 
-        // TODO: Fix for non-PoC contracts
-        let (res: felt*) = alloc();
-        assert res[0] = 'https://dev-carbonable-metadata';
-        assert res[1] = '.fly.dev/collection';
+        let (local res: felt*) = alloc();
 
-        return (2, res);
+        // TODO: better Uint256 to felt support
+        let (slot_count) = IERC3525.slotCount(instance);
+        let slot_count_ss = felt31_to_short_string(slot_count.low);
+
+        assert res[0] = 'data:application/json,{"name":';
+        let (res_len, res) = _contractName(1, res, instance);
+        assert res[res_len] = ',"description":';
+        let (res_len, res) = _contractDescription(res_len + 1, res, instance);
+        assert res[res_len + 0] = ',"external_url":';
+        assert res[res_len + 1] = '"https://app.carbonable.io/"';
+        assert res[res_len + 2] = ',"banner_image_url":';
+        assert res[res_len + 3] = '"ipfs://Qmdjj76nkc1HQn8Tr3ertWs';
+        assert res[res_len + 4] = '9eWkFMBxXQkGwjHEp6mWbig/banner.';
+        assert res[res_len + 5] = 'png"';
+        assert res[res_len + 6] = ',"youtube_url":';
+        assert res[res_len + 7] = '"https://youtu.be/5dZrROBmfKU"';
+        assert res[res_len + 8] = ',"num_projects":';
+        assert res[res_len + 9] = slot_count_ss;
+        assert res[res_len + 10] = ',"image":"';
+        let (res_len, res) = _contractImage(res_len + 11, res, instance);
+        assert res[res_len] = '"}';
+
+        return (res_len + 1, res);
     }
 
     //
@@ -101,59 +119,36 @@ namespace ContractMetadata {
     //
 
     func _contractName{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*, instance: felt, tokenId: Uint256
+        res_len: felt, res: felt*, instance: felt
     ) -> (res_len: felt, res: felt*) {
         alloc_locals;
-        let (symbol) = IERC3525.symbol(instance);
-        // TODO better Uint256 to felt support
-        let token_ss = felt31_to_short_string(tokenId.low);
-        assert res[res_len] = '"';
-        assert res[res_len + 1] = symbol;
-        assert res[res_len + 2] = ' #';
-        assert res[res_len + 3] = token_ss;
-        assert res[res_len + 4] = '"';
-        return (res_len + 5, res);
+        let (name) = IERC3525.name(instance);
+        assert res[res_len + 0] = '"';
+        assert res[res_len + 1] = name;
+        assert res[res_len + 2] = '"';
+        return (res_len + 3, res);
     }
 
     func _contractDescription{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*, instance: felt, tokenId: Uint256
+        res_len: felt, res: felt*, instance: felt
     ) -> (res_len: felt, res: felt*) {
-        assert res[res_len] = '"dummy token description"';
-        return (res_len + 1, res);
+        assert res[res_len + 0] = '"Carbonable Protocol ';
+        assert res[res_len + 1] = 'Regeneration Projects"';
+        return (res_len + 2, res);
     }
 
     func _contractImage{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*, instance: felt, value: Uint256, tokenId: Uint256
+        res_len: felt, res: felt*, instance: felt
     ) -> (res_len: felt, res: felt*) {
         alloc_locals;
         // MIME format
         assert res[res_len] = 'data:image/svg+xml,';
         // SVG content
-        let (res_len, res) = ProjectSvg._svg_def(res_len + 1, res);
-        let (res_len, res) = ProjectSvg._svg_background_outline(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_carbonable_logo(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_background_image(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_icons(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_location_logo(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_breakline(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_defs(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_project_image(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_suffix(res_len, res);
+        let (res_len, res) = ContractSVG._svg_prefix(res_len + 1, res);
+        let (res_len, res) = ContractSVG._svg_logo_path(res_len, res);
+        let (res_len, res) = ContractSVG._svg_defs(res_len, res);
+        let (res_len, res) = ContractSVG._svg_suffix(res_len, res);
 
         return (res_len, res);
-    }
-
-    func _contractProperties{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*, instance: felt, value: Uint256, tokenId: Uint256
-    ) -> (res_len: felt, res: felt*) {
-        alloc_locals;
-        // TODO: better Uint256 to string conversion
-        let value_ss = felt31_to_short_string(value.low);
-        assert res[res_len + 0] = '[{"trait_type":"Value",';
-        assert res[res_len + 1] = '"value":';
-        assert res[res_len + 2] = value_ss;
-        assert res[res_len + 3] = '}]';
-
-        return (res_len + 4, res);
     }
 }
