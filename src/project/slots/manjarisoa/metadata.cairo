@@ -7,7 +7,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 
 // Local dependencies
-from src.project.slots.poc.library import SlotMetadata
+from src.project.slots.manjarisoa.library import SlotMetadata
 
 // @notice Return the slot URI.
 // @param slot The slot to query.
