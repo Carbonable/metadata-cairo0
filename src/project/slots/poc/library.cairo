@@ -16,8 +16,10 @@ from openzeppelin.introspection.erc165.IERC165 import IERC165
 from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies
-from src.project.utils.svg import ProjectSvg, felt31_to_short_string
+from src.project.utils.ascii import felt_to_short_string, array_concat
 from src.project.utils.assert_helper import Assert
+from src.project.utils.type import _uint_to_felt
+from src.project.slots.poc.data.image import ProjectSVG
 
 namespace SlotMetadata {
     //
@@ -35,25 +37,26 @@ namespace SlotMetadata {
         let (local res: felt*) = alloc();
         let (local instance) = get_contract_address();
 
-        // TODO: better Uint256 to felt support
-        let (slot) = IERC3525.slotOf(instance, token_id);
-        let slot_ss = felt31_to_short_string(slot.low);
+        let (slot_u256) = IERC3525.slotOf(instance, token_id);
+        let (slot) = _uint_to_felt(slot_u256);
+        let (slot_ss_len, slot_ss) = felt_to_short_string(slot);
 
-        let (value) = IERC3525.valueOf(instance, token_id);
-        let value_ss = felt31_to_short_string(value.low);
+        let (value_u256) = IERC3525.valueOf(instance, token_id);
+        let (value) = _uint_to_felt(value_u256);
+        let (value_ss_len, value_ss) = felt_to_short_string(value);
 
         assert res[0] = 'data:application/json,{"name":';
         let (res_len, res) = _tokenName(1, res, instance, token_id);
         assert res[res_len] = ',"description":';
         let (res_len, res) = _tokenDescription(res_len + 1, res, instance, token_id);
         assert res[res_len] = ',"image":"';
-        let (res_len, res) = _tokenImage(res_len + 1, res, instance, value, token_id);
+        let (res_len, res) = _tokenImage(res_len + 1, res, instance, value_u256, token_id);
         assert res[res_len] = '","slot":';
-        assert res[res_len + 1] = slot_ss;
-        assert res[res_len + 2] = ',"value":';
-        assert res[res_len + 3] = value_ss;
-        assert res[res_len + 4] = ',"attributes":';
-        let (res_len, res) = _tokenProperties(res_len + 5, res, instance, value, token_id);
+        let (res_len, res) = array_concat(res_len + 1, res, slot_ss_len, slot_ss);
+        assert res[res_len] = ',"value":';
+        let (res_len, res) = array_concat(res_len + 1, res, value_ss_len, value_ss);
+        assert res[res_len] = ',"attributes":';
+        let (res_len, res) = _tokenProperties(res_len + 1, res, instance, value_u256, token_id);
         assert res[res_len] = '}';
 
         return (res_len + 1, res);
@@ -68,25 +71,14 @@ namespace SlotMetadata {
         Assert.u256(slot);
 
         // [Effect] Compute and return corresponding slot URI
-        let slot_ss = felt31_to_short_string(slot.low);
+        let (slot_felt) = _uint_to_felt(slot);
+        let (slot_ss_len, slot_ss) = felt_to_short_string(slot_felt);
 
         let (res: felt*) = alloc();
         assert res[0] = 'https://dev-carbonable-metadata';
         assert res[1] = '.fly.dev/collection/';
-        assert res[2] = slot_ss;
-        return (3, res);
-    }
-
-    func contract_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-        uri_len: felt, uri: felt*
-    ) {
-        alloc_locals;
-
-        let (res: felt*) = alloc();
-        assert res[0] = 'https://dev-carbonable-metadata';
-        assert res[1] = '.fly.dev/collection';
-
-        return (2, res);
+        let (res_len, res) = array_concat(2, res, slot_ss_len, slot_ss);
+        return (res_len, res);
     }
 
     //
@@ -97,15 +89,18 @@ namespace SlotMetadata {
         res_len: felt, res: felt*, instance: felt, token_id: Uint256
     ) -> (res_len: felt, res: felt*) {
         alloc_locals;
+        // TODO: change to project name
         let (symbol) = IERC3525.symbol(instance);
-        // TODO better Uint256 to felt support
-        let token_ss = felt31_to_short_string(token_id.low);
+
+        let (token) = _uint_to_felt(token_id);
+        let (token_ss_len, token_ss) = felt_to_short_string(token);
+
         assert res[res_len] = '"';
         assert res[res_len + 1] = symbol;
         assert res[res_len + 2] = ' #';
-        assert res[res_len + 3] = token_ss;
-        assert res[res_len + 4] = '"';
-        return (res_len + 5, res);
+        let (res_len, res) = array_concat(res_len + 3, res, token_ss_len, token_ss);
+        assert res[res_len] = '"';
+        return (res_len + 1, res);
     }
 
     func _tokenDescription{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -122,17 +117,17 @@ namespace SlotMetadata {
         // MIME format
         assert res[res_len] = 'data:image/svg+xml,';
         // SVG content
-        let (res_len, res) = ProjectSvg._svg_def(res_len + 1, res);
-        let (res_len, res) = ProjectSvg._svg_background_outline(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_carbonable_logo(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_background_image(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_icons(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_location_logo(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_breakline(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_defs(res_len, res);
-        let (res_len, res) = ProjectSvg._svg_project_image(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_def(res_len + 1, res);
+        let (res_len, res) = ProjectSVG._svg_background_outline(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_carbonable_logo(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_background_image(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_icons(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_location_logo(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_breakline(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_defs(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_project_image(res_len, res);
         let (res_len, res) = _add_svg_image_metadata(res_len, res, value);
-        let (res_len, res) = ProjectSvg._svg_suffix(res_len, res);
+        let (res_len, res) = ProjectSVG._svg_suffix(res_len, res);
 
         return (res_len, res);
     }
@@ -141,7 +136,8 @@ namespace SlotMetadata {
         res_len: felt, res: felt*, value: Uint256
     ) -> (res_len: felt, res: felt*) {
         alloc_locals;
-        let value_ss = felt31_to_short_string(value.low);
+        let (value_felt) = _uint_to_felt(value);
+        let (value_ss_len, value_ss) = felt_to_short_string(value_felt);
         memcpy(
             res + res_len,
             new (
@@ -174,9 +170,9 @@ namespace SlotMetadata {
             ),
             26,
         );
-        assert res[res_len + 26] = value_ss;
+        let (res_len, res) = array_concat(res_len + 26, res, value_ss_len, value_ss);
         memcpy(
-            res + res_len + 27,
+            res + res_len,
             new (
                 '</tspan>',
                 '</text><use y=\"855\" x=\"610\"',
@@ -188,20 +184,22 @@ namespace SlotMetadata {
             ),
             7,
         );
-        return (res_len + 27 + 7, res);
+        return (res_len + 7, res);
     }
 
     func _tokenProperties{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         res_len: felt, res: felt*, instance: felt, value: Uint256, token_id: Uint256
     ) -> (res_len: felt, res: felt*) {
         alloc_locals;
-        // TODO: better Uint256 to string conversion
-        let value_ss = felt31_to_short_string(value.low);
+
+        let (value_felt) = _uint_to_felt(value);
+        let (value_ss_len, value_ss) = felt_to_short_string(value_felt);
+
         assert res[res_len + 0] = '[{"trait_type":"Value",';
         assert res[res_len + 1] = '"value":';
-        assert res[res_len + 2] = value_ss;
-        assert res[res_len + 3] = '}]';
+        let (res_len, res) = array_concat(res_len + 2, res, value_ss_len, value_ss);
+        assert res[res_len] = '}]';
 
-        return (res_len + 4, res);
+        return (res_len + 1, res);
     }
 }
