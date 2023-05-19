@@ -10,6 +10,7 @@ cairo-path = [
 [contracts]
 ProjectMetadata = ["src/project/contract/metadata.cairo"]
 PoC_SlotMetadata = ["src/project/slots/poc/metadata.cairo"]
+ManjarisoaSlotMetadata = ["src/project/slots/manjarisoa/metadata.cairo"]
 
 [test]
 target = ["tests"]
