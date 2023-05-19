@@ -147,9 +147,16 @@ func slotOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(tok
 
 @view
 func valueOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(tokenId: Uint256) -> (
-    value: felt
+    value: Uint256
 ) {
-    return (value=31337);
+    return (value=Uint256(1337, 0));
+}
+
+@view
+func totalValue{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(slot: Uint256) -> (
+    value: Uint256
+) {
+    return (value=Uint256(313370, 0));
 }
 
 @view
