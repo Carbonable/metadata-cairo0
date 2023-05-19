@@ -15,10 +15,11 @@ from starkware.starknet.common.syscalls import get_contract_address
 from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies
-from src.project.contract.svg_utils import ContractSVG
+from src.project.contract.data.image import ContractSVG
 from src.project.interfaces.carbonable_metadata import ICarbonableMetadata
 from src.project.utils.assert_helper import Assert
-from src.project.utils.svg import felt31_to_short_string
+from src.project.utils.ascii import felt_to_short_string, array_concat
+from src.project.utils.type import _felt_to_uint, _uint_to_felt
 
 namespace ContractMetadata {
     func token_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -89,9 +90,9 @@ namespace ContractMetadata {
 
         let (local res: felt*) = alloc();
 
-        // TODO: better Uint256 to felt support
-        let (slot_count) = IERC3525.slotCount(instance);
-        let slot_count_ss = felt31_to_short_string(slot_count.low);
+        let (slot_count_u256) = IERC3525.slotCount(instance);
+        let (slot_count) = _uint_to_felt(slot_count_u256);
+        let (slot_count_ss_len, slot_count_ss) = felt_to_short_string(slot_count);
 
         assert res[0] = 'data:application/json,{"name":';
         let (res_len, res) = _contractName(1, res, instance);
@@ -106,9 +107,9 @@ namespace ContractMetadata {
         assert res[res_len + 6] = ',"youtube_url":';
         assert res[res_len + 7] = '"https://youtu.be/5dZrROBmfKU"';
         assert res[res_len + 8] = ',"num_projects":';
-        assert res[res_len + 9] = slot_count_ss;
-        assert res[res_len + 10] = ',"image":"';
-        let (res_len, res) = _contractImage(res_len + 11, res, instance);
+        let (res_len, res) = array_concat(res_len + 9, res, slot_count_ss_len, slot_count_ss);
+        assert res[res_len + 0] = ',"image":"';
+        let (res_len, res) = _contractImage(res_len + 1, res, instance);
         assert res[res_len] = '"}';
 
         return (res_len + 1, res);
@@ -144,11 +145,7 @@ namespace ContractMetadata {
         // MIME format
         assert res[res_len] = 'data:image/svg+xml,';
         // SVG content
-        let (res_len, res) = ContractSVG._svg_prefix(res_len + 1, res);
-        let (res_len, res) = ContractSVG._svg_logo_path(res_len, res);
-        let (res_len, res) = ContractSVG._svg_defs(res_len, res);
-        let (res_len, res) = ContractSVG._svg_suffix(res_len, res);
-
+        let (res_len, res) = ContractSVG._svg_carbonable_up_logo(res_len + 1, res);
         return (res_len, res);
     }
 }
