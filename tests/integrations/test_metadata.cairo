@@ -16,6 +16,7 @@ func __setup__{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     %{
         context.project_contract = deploy_contract("./tests/integrations/mocks/project.cairo").contract_address 
         context.contract_metadata_class_hash = declare("./src/project/contract/metadata.cairo").class_hash
+        context.slot_metadata_class_hash = declare("./src/project/slots/manjarisoa/metadata.cairo").class_hash
     %}
     return ();
 }
@@ -73,6 +74,41 @@ func test_metadata_nominal_case{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
         assert uri_data == []
     %}
 
+    // Set Slot Metadata
+    let slot = Uint256(1, 0);
+    let (slot_metadata_implementation) = contract_access.slot_metadata_implementation();
+    ICarbonableMetadata.setSlotMetadataImplementation(instance, slot, slot_metadata_implementation);
+    let (implementation) = ICarbonableMetadata.getSlotMetadataImplementation(instance, slot);
+    assert_not_zero(implementation);
+
+    // Get slot metadata
+    let (uri_len, uri) = ICarbonableMetadata.slotURI(instance, slot);
+    %{
+        import json
+        uri_data = [memory[ids.uri + i] for i in range(ids.uri_len)]
+        data = "".join(map(lambda val: bytes.fromhex(hex(val)[2:]).decode(), uri_data))
+        metadata = json.loads(data[22:])
+        assert "name" in metadata
+        assert "description" in metadata
+        assert "image" in metadata
+        assert "slot number" in metadata
+        assert "attributes" in metadata
+    %}
+
+    // Get token metadata
+    let (uri_len, uri) = ICarbonableMetadata.tokenURI(instance, token_id);
+    %{
+        import json
+        uri_data = [memory[ids.uri + i] for i in range(ids.uri_len)]
+        data = "".join(map(lambda val: bytes.fromhex(hex(val)[2:]).decode(), uri_data))
+        metadata = json.loads(data[22:])
+        assert "name" in metadata
+        assert "description" in metadata
+        assert "image" in metadata
+        assert "slot" in metadata
+        assert "value" in metadata
+        assert "attributes" in metadata
+    %}
     return ();
 }
 
@@ -86,6 +122,12 @@ namespace contract_access {
     func metadata_implementation() -> (implementation: felt) {
         tempvar implementation;
         %{ ids.implementation = context.contract_metadata_class_hash %}
+        return (implementation=implementation);
+    }
+
+    func slot_metadata_implementation() -> (implementation: felt) {
+        tempvar implementation;
+        %{ ids.implementation = context.slot_metadata_class_hash %}
         return (implementation=implementation);
     }
 }
