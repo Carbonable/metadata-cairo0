@@ -24,8 +24,8 @@ from src.project.utils.ascii import (
 )
 from src.project.utils.assert_helper import Assert
 from src.project.utils.type import _uint_to_felt
-from src.project.slots.manjarisoa.data.image import ProjectSVG, ProjectJPG
-from src.project.slots.manjarisoa.data.project import ProjectData, AssetData
+from src.project.slots.banegas_farm.data.image import ProjectSVG, ProjectJPG
+from src.project.slots.banegas_farm.data.project import ProjectData, AssetData
 
 namespace SlotMetadata {
     //
@@ -143,7 +143,6 @@ namespace SlotMetadata {
 
         assert res[res_len + 0] = ',';
         let end_date_ss = ProjectData.get_end_date();
-        // TODO add unit/format?
         let (res_len, res) = _add_attribute(
             res_len + 1, res, 0, 'Project end date', end_date_ss
         );

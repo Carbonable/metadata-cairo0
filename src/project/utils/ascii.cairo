@@ -85,6 +85,7 @@ func pad_ss{range_check_ptr}(value: felt, char: felt, cap: felt) -> (res: felt) 
     let (res) = _pad_ss_iter(value, char, value, cap);
     return (res=res);
 }
+
 func _pad_ss_iter{range_check_ptr}(value: felt, char: felt, acc: felt, cap: felt) -> (res: felt) {
     if (cap == 1) {
         return (res=acc);
@@ -103,5 +104,17 @@ func float_to_ss{range_check_ptr}(int: felt, frac: felt, cap: felt) -> felt {
     let (frac_ss) = smol_felt_to_ss(frac);
     let (frac_ss) = pad_ss(frac_ss, '0', cap);
     let res = (int_ss * 256 + '.') * 256 * cap + frac_ss;
+    return res;
+}
+
+func build_date_ss{range_check_ptr}(month: felt, year: felt) -> felt {
+    alloc_locals;
+
+    let (month_ss) = smol_felt_to_ss(month);
+    let (padded_month_ss) = pad_ss(month_ss, '0', 256);
+    let (year_ss) = smol_felt_to_ss(year);
+
+    let res = (padded_month_ss * 256 + '/') * 256 ** 4 + year_ss;
+
     return res;
 }

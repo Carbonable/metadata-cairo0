@@ -22,15 +22,15 @@ from src.project.utils.ascii import (
 
 const ONE_HA_IN_M2 = 10000;
 
-const PROJECT_NAME = 'Manjarisoa';
-const PROJECT_DEVELOPER = 'Forest Calling Action';
+const PROJECT_NAME = 'Banegas Farm';
+const PROJECT_DEVELOPER = 'Corcovado Foundation';
 const PROJECT_CERTIFIER = 'Wildsense';
-const PROJECT_AREA = 4000;
-const PROJECT_COUNTRY = 'Madagascar';
-const PROJECT_END_YEAR = 2043;  // mutable storage
+const PROJECT_AREA = 25;
+const PROJECT_COUNTRY = 'Costa Rica';
+const PROJECT_END_YEAR = 2052;  // mutable storage
 const PROJECT_END_MONTH = 12;  // mutable storage
-const PROJECT_DURATION_IN_YEARS = PROJECT_END_YEAR - 2023;
-const PROJECT_PROJECTED_CU = 8000;
+const PROJECT_DURATION_IN_YEARS = PROJECT_END_YEAR - 2022;
+const PROJECT_PROJECTED_CU = 1573;
 const PROJECT_COLOR = 'Green';
 const PROJECT_TYPE = 'Forest';
 const PROJECT_CATEGORY = 'Regeneration';

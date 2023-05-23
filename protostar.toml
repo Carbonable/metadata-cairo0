@@ -11,6 +11,8 @@ cairo-path = [
 ProjectMetadata = ["src/project/contract/metadata.cairo"]
 PoC_SlotMetadata = ["src/project/slots/poc/metadata.cairo"]
 ManjarisoaSlotMetadata = ["src/project/slots/manjarisoa/metadata.cairo"]
+BanegasFarmSlotMetadata = ["src/project/slots/banegas_farm/metadata.cairo"]
+LasDeliciasSlotMetadata = ["src/project/slots/las_delicias/metadata.cairo"]
 
 [test]
 target = ["tests"]

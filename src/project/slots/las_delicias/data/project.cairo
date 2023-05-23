@@ -16,23 +16,24 @@ from src.project.utils.ascii import (
     build_date_ss
 )
 
+
 //
 // Constants
 //
 
 const ONE_HA_IN_M2 = 10000;
 
-const PROJECT_NAME = 'Manjarisoa';
-const PROJECT_DEVELOPER = 'Forest Calling Action';
+const PROJECT_NAME = 'Las Delicias';
+const PROJECT_DEVELOPER = 'Fundacion Naturaleza Panama';
 const PROJECT_CERTIFIER = 'Wildsense';
-const PROJECT_AREA = 4000;
-const PROJECT_COUNTRY = 'Madagascar';
-const PROJECT_END_YEAR = 2043;  // mutable storage
+const PROJECT_AREA = 18;
+const PROJECT_COUNTRY = 'Panama';
+const PROJECT_END_YEAR = 2042;  // mutable storage
 const PROJECT_END_MONTH = 12;  // mutable storage
-const PROJECT_DURATION_IN_YEARS = PROJECT_END_YEAR - 2023;
-const PROJECT_PROJECTED_CU = 8000;
-const PROJECT_COLOR = 'Green';
-const PROJECT_TYPE = 'Forest';
+const PROJECT_DURATION_IN_YEARS = PROJECT_END_YEAR - 2022;
+const PROJECT_PROJECTED_CU = 3603;
+const PROJECT_COLOR = 'Blue';
+const PROJECT_TYPE = 'Mangrove';
 const PROJECT_CATEGORY = 'Regeneration';
 const PROJECT_STATUS = 'Active';  // mutable storage?
 const PROJECT_SOURCE = 'Carbonable';
