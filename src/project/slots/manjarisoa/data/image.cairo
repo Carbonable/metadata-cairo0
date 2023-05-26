@@ -54,15 +54,9 @@ namespace ProjectSVG {
 
         let country = ProjectData.get_country();
         assert res[res_len + 3] = country;
-        let res_len = res_len + 4;
+        assert res[res_len + 4] = '</tspan>';
 
-        memcpy(
-            res + res_len,
-            new (
-        '</tspan>',
-        ), 1);
-
-        return (res_len + 1, res);
+        return (res_len + 5, res);
     }
     func _add_svg_developer{
         syscall_ptr: felt*,
@@ -81,13 +75,9 @@ namespace ProjectSVG {
 
         let developer = ProjectData.get_developer();
         assert res[res_len + 3] = developer;
-        let res_len = res_len + 4;
-        memcpy( res + res_len,
-            new(
-        '</tspan> </tspan>',
-            ), 1);
+        assert res[res_len + 4] = '</tspan></tspan>';
 
-        return (res_len + 1, res);
+        return (res_len + 5, res);
     }
     func _add_svg_certifier{
         syscall_ptr: felt*,
@@ -105,15 +95,9 @@ namespace ProjectSVG {
 
         let certifier = ProjectData.get_certifier();
         assert res[res_len + 3] = certifier;
-        let res_len = res_len + 4;
+        assert res[res_len + 4] = '</tspan></tspan>';
 
-        memcpy(
-            res + res_len,
-            new (
-            '</tspan> </tspan>',
-            ), 1);
-
-        return (res_len + 1, res);
+        return (res_len + 5, res);
     }
 
     func _add_country_block_end{
@@ -122,11 +106,9 @@ namespace ProjectSVG {
         range_check_ptr}(
             res_len: felt, res: felt*
         ) -> (res_len: felt, res: felt*) {
-        memcpy(
-            res + res_len,
-            new (
-        '</text>',
-            ), 1);
+        alloc_locals;
+        assert res[res_len + 0] = '</text>';
+
         return (res_len + 1, res);
     }
 
@@ -164,9 +146,8 @@ namespace ProjectSVG {
         let area = AssetData.get_area_image_ss(value, total_value);
         assert res[res_len + 2] = area;
         assert res[res_len + 3] = ('m' * 256 ** 2 + SQUARE_METERS_CHAR) * 256 ** 8 + '</tspan>';
-        let res_len = res_len + 4;
 
-        return (res_len, res);
+        return (res_len + 4, res);
     }
 
     func _add_svg_end_date{
@@ -186,14 +167,8 @@ namespace ProjectSVG {
         let end_year = ProjectData.get_end_year();
         let (end_year_ss) = smol_felt_to_ss(end_year);
         assert res[res_len + 2] = end_year_ss;
-        let res_len = res_len + 3;
-
-        memcpy(
-            res + res_len,
-            new (
-        '</tspan>',
-            ), 1);
-        return (res_len + 1, res);
+        assert res[res_len + 3] = '</tspan>';
+        return (res_len + 4, res);
     }
 
     func _add_area_block_end{
@@ -202,11 +177,8 @@ namespace ProjectSVG {
         range_check_ptr}(
             res_len: felt, res: felt*
         ) -> (res_len: felt, res: felt*) {
-        memcpy(
-            res + res_len,
-            new (
-        '</text>',
-            ), 1);
+        assert res[res_len + 0] = '</text>';
+
         return (res_len + 1, res);
     }
 
@@ -240,15 +212,8 @@ namespace ProjectSVG {
             ), 3);
         let name = ProjectData.get_name();
         assert res[res_len + 3] = name;
-        let res_len = res_len + 4;
-
-        memcpy(
-            res + res_len,
-            new (
-                '</tspan>',
-            ), 1);
-
-        return (res_len + 1, res);
+        assert res[res_len + 4] = '</tspan>';
+        return (res_len + 5, res);
     }
     func _add_svg_projected_cu{
         syscall_ptr: felt*,
@@ -266,15 +231,8 @@ namespace ProjectSVG {
             ), 3);
         let projected_cu = AssetData.get_projected_cu_ss(value, total_value);
         assert res[res_len + 3] = projected_cu;
-        let res_len = res_len + 4;
-
-        memcpy(
-            res + res_len,
-            new (
-            '</tspan>'
-            ), 1);
-
-        return (res_len + 1, res);
+        assert res[res_len + 4] = '</tspan>';
+        return (res_len + 5, res);
     }
 
     func _add_project_name_block_end{
@@ -283,11 +241,8 @@ namespace ProjectSVG {
         range_check_ptr}(
             res_len: felt, res: felt*
         ) -> (res_len: felt, res: felt*) {
-        memcpy(
-            res + res_len,
-            new (
-            '</text>'
-            ), 1);
+        assert res[res_len + 0] = '</text>';
+
         return (res_len + 1, res);
     }
 
