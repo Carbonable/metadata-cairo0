@@ -3,10 +3,9 @@
 %lang starknet
 
 // Starkware dependencies
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import unsigned_div_rem
+
 from starkware.cairo.common.memcpy import memcpy
 
 namespace ContractSVG {
