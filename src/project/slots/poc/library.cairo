@@ -5,14 +5,14 @@
 // Starkware dependencies
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import assert_not_zero
-from starkware.cairo.common.uint256 import Uint256, uint256_check
+
+from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.memcpy import memcpy
 
-from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
+from starkware.starknet.common.syscalls import get_contract_address
 
 // Project dependencies
-from openzeppelin.introspection.erc165.IERC165 import IERC165
+
 from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies

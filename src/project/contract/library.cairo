@@ -5,9 +5,8 @@
 // Starkware dependencies
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import assert_not_zero
-from starkware.cairo.common.uint256 import Uint256, uint256_check
-from starkware.cairo.common.memcpy import memcpy
+
+from starkware.cairo.common.uint256 import Uint256
 
 from starkware.starknet.common.syscalls import get_contract_address
 
@@ -16,10 +15,11 @@ from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies
 from src.project.contract.data.image import ContractSVG
+from src.project.contract.data.contract import DescriptionData
 from src.project.interfaces.carbonable_metadata import ICarbonableMetadata
 from src.project.utils.assert_helper import Assert
 from src.project.utils.ascii import felt_to_short_string, array_concat
-from src.project.utils.type import _felt_to_uint, _uint_to_felt
+from src.project.utils.type import _uint_to_felt
 
 namespace ContractMetadata {
     func token_uri{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -96,9 +96,9 @@ namespace ContractMetadata {
 
         assert res[0] = 'data:application/json,{"name":';
         let (res_len, res) = _contractName(1, res, instance);
-        assert res[res_len] = ',"description":';
+        assert res[res_len] = ',"description":"';
         let (res_len, res) = _contractDescription(res_len + 1, res, instance);
-        assert res[res_len + 0] = ',"external_url":';
+        assert res[res_len + 0] = '","external_url":';
         assert res[res_len + 1] = '"https://app.carbonable.io/"';
         assert res[res_len + 2] = ',"banner_image_url":';
         assert res[res_len + 3] = '"ipfs://Qmdjj76nkc1HQn8Tr3ertWs';
@@ -133,9 +133,8 @@ namespace ContractMetadata {
     func _contractDescription{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         res_len: felt, res: felt*, instance: felt
     ) -> (res_len: felt, res: felt*) {
-        assert res[res_len + 0] = '"Carbonable Protocol ';
-        assert res[res_len + 1] = 'Regeneration Projects"';
-        return (res_len + 2, res);
+        let (res_len, res) = DescriptionData._generate_contract_description(res_len, res);
+        return (res_len, res);
     }
 
     func _contractImage{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

@@ -5,14 +5,13 @@
 // Starkware dependencies
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import assert_not_zero
-from starkware.cairo.common.uint256 import Uint256, uint256_check
-from starkware.cairo.common.memcpy import memcpy
 
-from starkware.starknet.common.syscalls import get_caller_address, get_contract_address
+from starkware.cairo.common.uint256 import Uint256
+
+from starkware.starknet.common.syscalls import get_contract_address
 
 // Project dependencies
-from openzeppelin.introspection.erc165.IERC165 import IERC165
+
 from erc3525.IERC3525Full import IERC3525Full as IERC3525
 
 // Local dependencies
@@ -26,6 +25,7 @@ from src.project.utils.assert_helper import Assert
 from src.project.utils.type import _uint_to_felt
 from src.project.slots.manjarisoa.data.image import ProjectSVG, ProjectJPG
 from src.project.slots.manjarisoa.data.project import ProjectData, AssetData
+from src.project.slots.common.library import DescriptionData
 
 namespace SlotMetadata {
     //
@@ -52,11 +52,12 @@ namespace SlotMetadata {
         let (value_ss_len, value_ss) = felt_to_short_string(value_felt);
 
         let (total_value) = IERC3525.totalValue(instance, slot);
+        let project_name = ProjectData.get_name();
 
         assert res[0] = 'data:application/json,{"name":';
         let (res_len, res) = _token_name(1, res, instance, token_id);
         assert res[res_len] = ',"description":"';
-        let (res_len, res) = _token_description(res_len + 1, res, instance, token_id);
+        let (res_len, res) = _token_description(res_len + 1, res, instance, project_name);
         assert res[res_len] = '","image":"';
         let (res_len, res) = _token_image(res_len + 1, res, instance, value, total_value);
         assert res[res_len] = '","slot":';
@@ -64,7 +65,9 @@ namespace SlotMetadata {
         assert res[res_len] = ',"value":';
         let (res_len, res) = array_concat(res_len + 1, res, value_ss_len, value_ss);
         assert res[res_len] = ',"attributes":';
-        let (res_len, res) = _token_properties(res_len + 1, res, instance, value, total_value, value_ss_len, value_ss);
+        let (res_len, res) = _token_properties(
+            res_len + 1, res, instance, value, total_value, value_ss_len, value_ss
+        );
         assert res[res_len] = '}';
 
         return (res_len + 1, res);
@@ -89,7 +92,7 @@ namespace SlotMetadata {
         let name = ProjectData.get_name();
         assert res[1] = name;
         assert res[2] = '","description":"';
-        let (res_len, res) = _slot_description(3, res);
+        let (res_len, res) = _slot_description(3, res, name);
         assert res[res_len] = '","image":"';
         let (res_len, res) = _slot_image(res_len + 1, res, instance);
         assert res[res_len] = '","slot number":';
@@ -144,9 +147,7 @@ namespace SlotMetadata {
         assert res[res_len + 0] = ',';
         let end_date_ss = ProjectData.get_end_date();
         // TODO add unit/format?
-        let (res_len, res) = _add_attribute(
-            res_len + 1, res, 0, 'Project end date', end_date_ss
-        );
+        let (res_len, res) = _add_attribute(res_len + 1, res, 0, 'Project end date', end_date_ss);
 
         assert res[res_len + 0] = ',';
         let projected_cu = ProjectData.get_projected_cu();
@@ -179,11 +180,12 @@ namespace SlotMetadata {
     }
 
     func _slot_description{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*
+        res_len: felt, res: felt*, project_name_ss: felt
     ) -> (res_len: felt, res: felt*) {
-        assert res[res_len + 0] = 'Invest in decarbonation through';
-        assert res[res_len + 1] = ' our Green DeFi Launchpad.';
-        return (res_len + 2, res);
+        let (res_len, res) = DescriptionData._generate_slot_description(
+            res_len, res, project_name_ss
+        );
+        return (res_len, res);
     }
 
     func _slot_image{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -217,11 +219,12 @@ namespace SlotMetadata {
     }
 
     func _token_description{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*, instance: felt, token_id: Uint256
+        res_len: felt, res: felt*, instance: felt, project_name_ss: felt
     ) -> (res_len: felt, res: felt*) {
-        assert res[res_len + 0] = 'Invest in decarbonation through';
-        assert res[res_len + 1] = ' our Green DeFi Launchpad.';
-        return (res_len + 2, res);
+        let (res_len, res) = DescriptionData._generate_slot_description(
+            res_len, res, project_name_ss
+        );
+        return (res_len, res);
     }
 
     func _token_image{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -245,19 +248,33 @@ namespace SlotMetadata {
     }
 
     func _token_properties{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*, instance: felt, value: Uint256, total_value: Uint256, value_ss_len: felt, value_ss: felt*
+        res_len: felt,
+        res: felt*,
+        instance: felt,
+        value: Uint256,
+        total_value: Uint256,
+        value_ss_len: felt,
+        value_ss: felt*,
     ) -> (res_len: felt, res: felt*) {
         alloc_locals;
         assert res[res_len + 0] = '[';
         let (res_len, res) = _project_properties_list(res_len + 1, res, instance);
         assert res[res_len + 0] = ',';
-        let (res_len, res) = _token_properties_list(res_len + 1, res, instance, value, total_value, value_ss_len, value_ss);
+        let (res_len, res) = _token_properties_list(
+            res_len + 1, res, instance, value, total_value, value_ss_len, value_ss
+        );
         assert res[res_len + 0] = ']';
         return (res_len + 1, res);
     }
 
     func _token_properties_list{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        res_len: felt, res: felt*, instance: felt, value: Uint256, total_value: Uint256, value_ss_len: felt, value_ss: felt*
+        res_len: felt,
+        res: felt*,
+        instance: felt,
+        value: Uint256,
+        total_value: Uint256,
+        value_ss_len: felt,
+        value_ss: felt*,
     ) -> (res_len: felt, res: felt*) {
         alloc_locals;
 
@@ -320,7 +337,12 @@ namespace SlotMetadata {
     }
 
     func _add_array_attribute{range_check_ptr}(
-        res_len: felt, res: felt*, display_type: felt, trait_type: felt, attribute_ss_len: felt, attribute_ss: felt*
+        res_len: felt,
+        res: felt*,
+        display_type: felt,
+        trait_type: felt,
+        attribute_ss_len: felt,
+        attribute_ss: felt*,
     ) -> (res_len: felt, res: felt*) {
         assert res[res_len + 0] = '{"display_type":"';
         assert res[res_len + 1] = display_type;
@@ -328,7 +350,7 @@ namespace SlotMetadata {
         assert res[res_len + 3] = trait_type;
         assert res[res_len + 4] = '","value":';
         let (res_len, res) = array_concat(res_len + 5, res, attribute_ss_len, attribute_ss);
-        assert res[res_len + 0 ] = '}';
+        assert res[res_len + 0] = '}';
         return (res_len + 1, res);
     }
 }

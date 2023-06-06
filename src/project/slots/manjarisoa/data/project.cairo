@@ -3,18 +3,15 @@
 %lang starknet
 
 // Starkware dependencies
-from starkware.cairo.common.alloc import alloc
+
 from starkware.cairo.common.bool import TRUE
 from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_nn_le
-from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_le
+from starkware.cairo.common.uint256 import Uint256
 
 // Project dependencies
 from src.project.utils.type import _uint_to_felt
-from src.project.utils.ascii import (
-    float_to_ss,
-    build_date_ss
-)
+from src.project.utils.ascii import float_to_ss, build_date_ss
 
 //
 // Constants
@@ -126,7 +123,7 @@ namespace AssetData {
     }
 
     func get_image_color_ss{range_check_ptr}(value: Uint256, total_value: Uint256) -> felt {
-        let (area_int, area_frac) = _get_area(value, total_value);
+        let (area_int, _) = _get_area(value, total_value);
         if (area_int == 0) {
             return 'red';
         }
