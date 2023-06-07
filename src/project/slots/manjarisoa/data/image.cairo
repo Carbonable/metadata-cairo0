@@ -1201,8 +1201,7 @@ namespace ProjectSVG {
                 '5UNrtUaG47DBpUXA46Wv+7jgKeT7nxq',
                 'KGOOOgYaH0iMyIGLfyTg48CMVRMAi+Q',
                 'doNGKDgPS9ihgMdL5BO10LfyDmDiYoB',
-                '/lhieBYf//Z\" /> </pattern> </g',
-                '>',
+                '/lhieBYf//Z\"/></pattern></g>',
             ),
             640,
         );
