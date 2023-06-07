@@ -12,7 +12,7 @@ namespace DescriptionData {
         memcpy(
             res + res_len,
             new (
-                'Invest in',
+                'Invest in ',
                 project_name_ss,
                 ', a meticulously chosen carbon ',
                 'removal project. Earn projected',
